@@ -1,0 +1,192 @@
+import math
+import numpy as np
+
+
+from numpy import genfromtxt
+
+import matplotlib.pyplot as plt
+
+import tensorflow as tf
+from tensorflow.python.framework import ops
+
+
+utrain = [[  13.91402715],
+          [  61.49773756],
+          [ 129.47963801],
+          [  10.85972851]]
+stdtrain = [[  5.69248394],
+            [ 11.7652854 ],
+            [ 64.00527263],
+            [  4.62173284]]
+
+
+my_data = genfromtxt('test_data.csv', delimiter=',')
+
+
+my_data[0,0] = 12
+
+M = np.shape(my_data)[0]
+N = np.shape(my_data)[1]
+L_Z = N
+Y_I = np.shape(my_data)[1] - 1
+
+
+#t_m = int(M*0.8)
+
+#train_set = my_data[0:t_m,:]
+
+test_set = my_data[:,:]
+
+
+X_test = test_set[:,0:Y_I].T
+
+X_test_norm = (X_test - utrain) / stdtrain
+
+Y_test = test_set[:,Y_I].T.reshape(1,-1)
+
+def create_placeholders(n_x, n_y):
+    """
+    Creates the placeholders for the tensorflow session.
+    
+    Arguments:
+    n_x -- scalar, size of an image vector (num_px * num_px = 64 * 64 * 3 = 12288)
+    n_y -- scalar, number of classes (from 0 to 5, so -> 6)
+    
+    Returns:
+    X -- placeholder for the data input, of shape [n_x, None] and dtype "float"
+    Y -- placeholder for the input labels, of shape [n_y, None] and dtype "float"
+    
+    Tips:
+    - You will use None because it let's us be flexible on the number of examples you will for the placeholders.
+      In fact, the number of examples during test/train is different.
+    """
+
+    ### START CODE HERE ### (approx. 2 lines)
+    X = tf.placeholder(tf.float32, shape = [n_x,None])
+    Y = tf.placeholder(tf.float32, shape = [n_y,None])
+    ### END CODE HERE ###
+    
+    return X, Y
+ 
+def forward_propagation(X, parameters):
+    print("FP")
+    
+    # Retrieve the parameters from the dictionary "parameters"
+    W1 = parameters['W1']
+    b1 = parameters['b1']
+    W2 = parameters['W2']
+    b2 = parameters['b2']
+    W3 = parameters['W3']
+    b3 = parameters['b3']
+    
+    ### START CODE HERE ### (approx. 5 lines)              # Numpy Equivalents:
+    Z1 = tf.add(tf.matmul(W1,X),b1)                                              # Z1 = np.dot(W1, X) + b1
+    A1 = tf.nn.relu(Z1)                                              # A1 = relu(Z1)
+    Z2 = tf.add(tf.matmul(W2,A1),b2)                                              # Z2 = np.dot(W2, a1) + b2
+    A2 = tf.nn.relu(Z2)                                              # A2 = relu(Z2)
+    Z3 = tf.add(tf.matmul(W3,A2),b3)                                              # Z3 = np.dot(W3,Z2) + b3
+    ### END CODE HERE ###
+    
+    return Z3
+    
+def printParams(parameters,sess, save):
+    W1 = parameters['W1']
+    b1 = parameters['b1']
+    W2 = parameters['W2']
+    b2 = parameters['b2']
+    W3 = parameters['W3']
+    b3 = parameters['b3']
+    Utrain = parameters['Utrain']
+    STDtrain = parameters['STDtrain']
+    print ("W1 = " + str(W1.eval(session=sess)))
+    print ("b1 = " + str(b1.eval(session=sess)))
+    print ("W2 = " + str(W2.eval(session=sess)))
+    print ("b2 = " + str(b2.eval(session=sess)))
+    print ("W3 = " + str(W3.eval(session=sess)))
+    print ("b3 = " + str(b3.eval(session=sess)))
+    print ("Utrain = " + str(Utrain.eval(session=sess)))
+    print ("STDtrain = " + str(STDtrain.eval(session=sess)))
+    if save:
+        saver = tf.train.Saver({"W1": W1,
+                               "b1": b1,
+                               "W2": W2,
+                               "b2": b2,
+                               "W3": W3,
+                               "b3": b3})
+        saver.save(sess, 'output.chkp')
+
+
+ 
+def predict(X_test, Y_test, utrain, stdtrain, l_z):
+    
+    ops.reset_default_graph() 
+    (n_x, m) = X_test.shape
+    n_y = Y_test.shape[0]
+    
+    l_z2 = l_z + l_z/2
+    W1 = tf.get_variable("W1", [l_z,n_x])
+    b1 = tf.get_variable("b1", [l_z,1])
+    W2 = tf.get_variable("W2", [l_z2,l_z])
+    b2 = tf.get_variable("b2", [l_z2,1])
+    W3 = tf.get_variable("W3", [1,l_z2])
+    b3 = tf.get_variable("b3", [1,1])
+    Utrain = tf.constant(utrain)
+
+    STDtrain = tf.constant(stdtrain)
+    
+    parameters = {"W1": W1,
+                  "b1": b1,
+                  "W2": W2,
+                  "b2": b2,
+                  "W3": W3,
+                  "b3": b3
+                 }
+    X, Y = create_placeholders(n_x, n_y)
+    #X_norm = (X - parameters['Utrain']) / parameters['STDtrain']
+    A3 = tf.round(tf.sigmoid(forward_propagation(X, parameters)))
+    #init = tf.global_variables_initializer()
+    saver = tf.train.Saver()
+    sess = tf.Session()
+    #sess.run(init)
+    saver.restore(sess, "output.chkp")
+    parameters = {"W1": W1, "b1": b1, "W2": W2, "b2": b2, "W3": W3, "b3": b3, "Utrain": Utrain, "STDtrain": STDtrain}
+    printParams(parameters,sess,False)
+    #utrain = parameters['Utrain'].eval(session=sess)
+    #stdtrain = parameters['STDtrain'].eval(session=sess)
+    result = sess.run(A3, feed_dict={X: X_test, Y: Y_test} )
+    
+
+
+    print("RESULT = "+str(result))
+    print("Y = "+str(Y_test))
+    equal = result == Y_test;
+    print("EQUAL = "+str(np.sum(equal)))
+    truep = np.sum( (result == 1) & (result == Y_test))
+    totalp = np.sum(result == 1)
+    actualp = np.sum(Y_test == 1)
+    print("TOTAL POSITIVE = "+str(totalp))
+    print("TRUE POSITIVE = "+str(truep))
+    print("ACTUAL POSITIVE = "+str(actualp))
+    
+    precision = (100* truep) / totalp
+    recall = (100 *truep) / actualp
+    f1 = (precision * recall) / (precision + recall)
+    print("PRECISION "+ str ( precision ) +"%" )
+    print("RECALL "+ str ( recall) +"%" )
+    print("F1 "+ str ( 2*f1) +"%" )
+    
+    
+    print("TOTAL = "+str(Y_test.size))
+    print("ACCURACY "+ str (  (100*np.sum(result == Y_test)) / Y_test.size ) +"%" )
+    
+    #plt.plot(result.T, Y_test.T,'go')
+    #plt.plot(Y_test.T, Y_test.T, 'rx')
+    
+    #plt.ylabel('Y')
+    #plt.xlabel('result')
+    #plt.show()
+    sess.close()
+
+
+    
+predict(X_test_norm, Y_test, utrain, stdtrain, L_Z)
