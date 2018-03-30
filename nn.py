@@ -1,6 +1,4 @@
-import math
 import numpy as np
-
 
 from numpy import genfromtxt
 
@@ -14,6 +12,7 @@ my_data = genfromtxt('train_data.csv', delimiter=',')
 
 my_data_app = genfromtxt('test_data.csv', delimiter=',')
 
+#These lines are added as genfromtxt sometimes misses the first CVS element!!
 my_data[0,0] = 12
 my_data_app[0,0] = 12
 
@@ -49,18 +48,6 @@ Y_test = test_set[:,Y_I].T.reshape(1,-1)
 def create_placeholders(n_x, n_y):
     """
     Creates the placeholders for the tensorflow session.
-    
-    Arguments:
-    n_x -- scalar, size of an image vector (num_px * num_px = 64 * 64 * 3 = 12288)
-    n_y -- scalar, number of classes (from 0 to 5, so -> 6)
-    
-    Returns:
-    X -- placeholder for the data input, of shape [n_x, None] and dtype "float"
-    Y -- placeholder for the input labels, of shape [n_y, None] and dtype "float"
-    
-    Tips:
-    - You will use None because it let's us be flexible on the number of examples you will for the placeholders.
-      In fact, the number of examples during test/train is different.
     """
 
     ### START CODE HERE ### (approx. 2 lines)
@@ -71,8 +58,10 @@ def create_placeholders(n_x, n_y):
     return X, Y
 
 def initialize_parameters(n_x,l_z,utrain,stdtrain):
+    """
+    The parameters are initiated for each layer, using an architecture where the second layer has 1.5 times neurons of the first
+    """
     print("IP")
-    
     l_z2 = l_z + l_z/2
     ### START CODE HERE ### (approx. 6 lines of code)
     W1 = tf.get_variable("W1", [l_z,n_x], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
@@ -121,7 +110,7 @@ def get_parameters(n_x,l_z):
     
 def forward_propagation(X, parameters):
     print("FP")
-    
+   
     # Retrieve the parameters from the dictionary "parameters"
     W1 = parameters['W1']
     b1 = parameters['b1']
@@ -145,7 +134,7 @@ def compute_cost(Z3, Y, parameters):
     Computes the cost
     
     Arguments:
-    Z3 -- output of forward propagation (output of the last LINEAR unit), of shape (6, number of examples)
+    Z3 -- output of forward propagation (output of the last LINEAR unit), of shape (1, number of examples)
     Y -- "true" labels vector placeholder, same shape as Z3
     
     Returns:
@@ -156,17 +145,13 @@ def compute_cost(Z3, Y, parameters):
     W2 = parameters['W2']
     W3 = parameters['W3']
     
-    # to fit the tensorflow requirement for tf.nn.softmax_cross_entropy_with_logits(...,...)
-    
-    
-    #m = Y.shape[0] 
-    ### START CODE HERE ### (1 line of code)
-    #cost = np.mean(np.square(Z3-Y))
+   
     cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(labels=Y,logits=Z3))
+    
+    #L2 regularlization
+    
     regularizer = tf.nn.l2_loss(W1)+tf.nn.l2_loss(W2)+tf.nn.l2_loss(W3)
     cost = tf.reduce_mean(cost + 0.002* regularizer)
-    ### END CODE HERE ###
-    #print("COST = " + cost)
     
     return cost
 
@@ -194,7 +179,7 @@ def printParams(parameters,sess, save):
                                "b2": b2,
                                "W3": W3,
                                "b3": b3})
-        saver.save(sess, '/Users/mlnoone/tensorflow/proj/thrombo/filename.chkp')
+        saver.save(sess, 'output.chkp')
 
 
 
@@ -204,10 +189,11 @@ def model(X_train, Y_train, X_test, Y_test, L_Z, learning_rate = 0.0001,
     Implements a three-layer tensorflow neural network: LINEAR->RELU->LINEAR->RELU->LINEAR->SOFTMAX.
     
     Arguments:
-    X_train -- training set, of shape (input size = 12288, number of training examples = 1080)
-    Y_train -- test set, of shape (output size = 6, number of training examples = 1080)
-    X_test -- training set, of shape (input size = 12288, number of training examples = 120)
-    Y_test -- test set, of shape (output size = 6, number of test examples = 120)
+    X_train -- training set
+    Y_train -- training set labels
+    X_test -- test set
+    Y_test -- test set labels
+    
     learning_rate -- learning rate of the optimization
     num_epochs -- number of epochs of the optimization loop
     minibatch_size -- size of a minibatch
@@ -238,9 +224,8 @@ def model(X_train, Y_train, X_test, Y_test, L_Z, learning_rate = 0.0001,
     sess = tf.Session()
     sess.run(init)
     
-    #printParams(parameters,sess,False)
         
-        # Do the training loop
+     # Do the training loop
     for epoch in range(num_epochs):
       _ , e_cost = sess.run([optimizer, cost], feed_dict={X: X_train, Y: Y_train})
        
@@ -293,18 +278,15 @@ def predict(X_train, Y_train, X_test, Y_test, utrain, stdtrain, l_z):
                   "b3": b3
                  }
     X, Y = create_placeholders(n_x, n_y)
-    #X_norm = (X - parameters['Utrain']) / parameters['STDtrain']
+    
     A3 = tf.round(tf.sigmoid(forward_propagation(X, parameters)))
-    #init = tf.global_variables_initializer()
+    
     saver = tf.train.Saver()
     sess = tf.Session()
-    #sess.run(init)
+    
     saver.restore(sess, "output.chkp")
     parameters = {"W1": W1, "b1": b1, "W2": W2, "b2": b2, "W3": W3, "b3": b3, "Utrain": Utrain, "STDtrain": STDtrain}
-    #printParams(parameters,sess,False)
-    #utrain = parameters['Utrain'].eval(session=sess)
-    #stdtrain = parameters['STDtrain'].eval(session=sess)
-
+    
     result_train = sess.run(A3, feed_dict={X: X_train, Y: Y_train} )
     
     result = sess.run(A3, feed_dict={X: X_test, Y: Y_test} )
@@ -313,15 +295,6 @@ def predict(X_train, Y_train, X_test, Y_test, utrain, stdtrain, l_z):
     print_results(result_train, Y_train)
     print_results(result, Y_test)
 
-
-
-    
-    #plt.plot(result.T, Y_test.T,'go')
-    #plt.plot(Y_test.T, Y_test.T, 'rx')
-    
-    #plt.ylabel('Y')
-    #plt.xlabel('result')
-    #plt.show()
     sess.close()
 
 def print_results(result, Y_test) :
@@ -347,9 +320,10 @@ def print_results(result, Y_test) :
     print("ACCURACY "+ str (  (100*np.sum(result == Y_test)) / Y_test.size ) +"%" )
 
 
-print ("X_train_norm shape" + str(np.shape(X_train_norm)))
-print ("Y_train_shape" + str(np.shape(Y_train)))
+#Train
 parameters = model(X_train_norm, Y_train, X_test_norm, Y_test, L_Z,  0.15)
+
+#Predict
 predict(X_train_norm, Y_train, X_test_norm, Y_test, utrain, stdtrain, L_Z)
 
     

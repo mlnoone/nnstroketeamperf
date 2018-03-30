@@ -45,26 +45,10 @@ X_test_norm = (X_test - utrain) / stdtrain
 Y_test = test_set[:,Y_I].T.reshape(1,-1)
 
 def create_placeholders(n_x, n_y):
-    """
-    Creates the placeholders for the tensorflow session.
     
-    Arguments:
-    n_x -- scalar, size of an image vector (num_px * num_px = 64 * 64 * 3 = 12288)
-    n_y -- scalar, number of classes (from 0 to 5, so -> 6)
-    
-    Returns:
-    X -- placeholder for the data input, of shape [n_x, None] and dtype "float"
-    Y -- placeholder for the input labels, of shape [n_y, None] and dtype "float"
-    
-    Tips:
-    - You will use None because it let's us be flexible on the number of examples you will for the placeholders.
-      In fact, the number of examples during test/train is different.
-    """
 
-    ### START CODE HERE ### (approx. 2 lines)
     X = tf.placeholder(tf.float32, shape = [n_x,None])
     Y = tf.placeholder(tf.float32, shape = [n_y,None])
-    ### END CODE HERE ###
     
     return X, Y
  
@@ -142,17 +126,12 @@ def predict(X_test, Y_test, utrain, stdtrain, l_z):
                   "b3": b3
                  }
     X, Y = create_placeholders(n_x, n_y)
-    #X_norm = (X - parameters['Utrain']) / parameters['STDtrain']
     A3 = tf.round(tf.sigmoid(forward_propagation(X, parameters)))
-    #init = tf.global_variables_initializer()
     saver = tf.train.Saver()
     sess = tf.Session()
-    #sess.run(init)
     saver.restore(sess, "output.chkp")
     parameters = {"W1": W1, "b1": b1, "W2": W2, "b2": b2, "W3": W3, "b3": b3, "Utrain": Utrain, "STDtrain": STDtrain}
     printParams(parameters,sess,False)
-    #utrain = parameters['Utrain'].eval(session=sess)
-    #stdtrain = parameters['STDtrain'].eval(session=sess)
     result = sess.run(A3, feed_dict={X: X_test, Y: Y_test} )
     
 
@@ -179,12 +158,6 @@ def predict(X_test, Y_test, utrain, stdtrain, l_z):
     print("TOTAL = "+str(Y_test.size))
     print("ACCURACY "+ str (  (100*np.sum(result == Y_test)) / Y_test.size ) +"%" )
     
-    #plt.plot(result.T, Y_test.T,'go')
-    #plt.plot(Y_test.T, Y_test.T, 'rx')
-    
-    #plt.ylabel('Y')
-    #plt.xlabel('result')
-    #plt.show()
     sess.close()
 
 

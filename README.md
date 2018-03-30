@@ -1,4 +1,4 @@
-# nnstroketeamperf
+# Neural Network for Predicting Stroke Team Performance (Door to Needla Time)
 Implementation of a shallow neural network using TensorFlow Low Level  APIs
 ## Files
 1. nn.py : Full neural network implementation
