@@ -17,8 +17,8 @@ var X = [[x1],[x2],[x3],[x4]];
 var pred = predict(X); //pred is 1 or 0 as per the model calculates
 
 ~~~~
-
-The py read data from 'train_data.csv' and 'test_data.csv' which should have the following structure, in each row:
+## Input data format
+The data is read from 'train_data.csv' and 'test_data.csv' which should have the following structure, for each row:
 
 (Hour of day),(Age),(Duration),(Severity - NIH Stroke Scale),(Door to Needle time >45 min (1) or less (0))
 e.g,
