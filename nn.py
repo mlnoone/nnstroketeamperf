@@ -1,6 +1,6 @@
 import numpy as np
 
-from numpy import genfromtxt
+import pandas as pd
 
 import matplotlib.pyplot as plt
 
@@ -8,20 +8,20 @@ import tensorflow as tf
 from tensorflow.python.framework import ops
 
 
-my_data = genfromtxt('train_data.csv', delimiter=',')
+my_data = pd.read_csv('train_data.csv').as_matrix()
 
-my_data_app = genfromtxt('test_data.csv', delimiter=',')
+my_data_app = pd.read_csv('test_data.csv').as_matrix()
 
-#These lines are added as genfromtxt sometimes misses the first CVS element!!
-my_data[0,0] = 12
-my_data_app[0,0] = 12
 
 M = np.shape(my_data)[0]
 N = np.shape(my_data)[1]
 
 L_Z = N
-Y_I = np.shape(my_data_app)[1] - 1
-M_app = np.shape(my_data)[0]
+
+#Y_I: Index of labels
+Y_I = np.shape(my_data)[1] - 1
+
+M_app = np.shape(my_data_app)[0]
 
 t_m = int(M_app*0.5)
 
@@ -179,7 +179,7 @@ def printParams(parameters,sess, save):
                                "b2": b2,
                                "W3": W3,
                                "b3": b3})
-        saver.save(sess, 'output.chkp')
+        saver.save(sess, './output.chkp')
 
 
 

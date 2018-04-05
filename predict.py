@@ -1,11 +1,7 @@
 import math
 import numpy as np
-
-
-from numpy import genfromtxt
-
 import matplotlib.pyplot as plt
-
+import pandas as pd
 import tensorflow as tf
 from tensorflow.python.framework import ops
 
@@ -20,10 +16,8 @@ stdtrain = [[  5.69248394],
             [  4.62173284]]
 
 
-my_data = genfromtxt('test_data.csv', delimiter=',')
+my_data = pd.read_csv('test_data.csv').as_matrix()
 
-
-my_data[0,0] = 12
 
 M = np.shape(my_data)[0]
 N = np.shape(my_data)[1]
@@ -129,7 +123,7 @@ def predict(X_test, Y_test, utrain, stdtrain, l_z):
     A3 = tf.round(tf.sigmoid(forward_propagation(X, parameters)))
     saver = tf.train.Saver()
     sess = tf.Session()
-    saver.restore(sess, "output.chkp")
+    saver.restore(sess, "./output.chkp")
     parameters = {"W1": W1, "b1": b1, "W2": W2, "b2": b2, "W3": W3, "b3": b3, "Utrain": Utrain, "STDtrain": STDtrain}
     printParams(parameters,sess,False)
     result = sess.run(A3, feed_dict={X: X_test, Y: Y_test} )
