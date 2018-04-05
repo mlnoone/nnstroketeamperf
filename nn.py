@@ -50,10 +50,9 @@ def create_placeholders(n_x, n_y):
     Creates the placeholders for the tensorflow session.
     """
 
-    ### START CODE HERE ### (approx. 2 lines)
     X = tf.placeholder(tf.float32, shape = [n_x,None])
     Y = tf.placeholder(tf.float32, shape = [n_y,None])
-    ### END CODE HERE ###
+    
     
     return X, Y
 
@@ -63,15 +62,14 @@ def initialize_parameters(n_x,l_z,utrain,stdtrain):
     """
     print("IP")
     l_z2 = l_z + l_z/2
-    ### START CODE HERE ### (approx. 6 lines of code)
+    
     W1 = tf.get_variable("W1", [l_z,n_x], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
     b1 = tf.get_variable("b1", [l_z,1], initializer = tf.zeros_initializer())
     W2 = tf.get_variable("W2", [l_z2,l_z], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
     b2 = tf.get_variable("b2", [l_z2,1], initializer = tf.zeros_initializer())
     W3 = tf.get_variable("W3", [1,l_z2], initializer = tf.contrib.layers.xavier_initializer(seed = 1))
     b3 = tf.get_variable("b3", [1,1], initializer = tf.zeros_initializer())
-    ### END CODE HERE ###
-
+    
     Utrain = tf.constant(utrain)
 
     STDtrain = tf.constant(stdtrain)
@@ -119,13 +117,11 @@ def forward_propagation(X, parameters):
     W3 = parameters['W3']
     b3 = parameters['b3']
     
-    ### START CODE HERE ### (approx. 5 lines)              # Numpy Equivalents:
     Z1 = tf.add(tf.matmul(W1,X),b1)                                              # Z1 = np.dot(W1, X) + b1
     A1 = tf.nn.relu(Z1)                                              # A1 = relu(Z1)
     Z2 = tf.add(tf.matmul(W2,A1),b2)                                              # Z2 = np.dot(W2, a1) + b2
     A2 = tf.nn.relu(Z2)                                              # A2 = relu(Z2)
     Z3 = tf.add(tf.matmul(W3,A2),b3)                                              # Z3 = np.dot(W3,Z2) + b3
-    ### END CODE HERE ###
     
     return Z3
 
