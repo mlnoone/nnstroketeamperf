@@ -16,23 +16,27 @@ my_data_app = pd.read_csv('test_data.csv').as_matrix()
 M = np.shape(my_data)[0]
 N = np.shape(my_data)[1]
 
+#Input layer = N
 L_Z = N
 
-#Y_I: Index of labels
+#Y_I: Index of labels column (last)
 Y_I = np.shape(my_data)[1] - 1
 
+#validation set
 M_app = np.shape(my_data_app)[0]
 
-t_m = int(M_app*0.5)
+
+validation_sz = int(M_app*0.5)
 
 train_set = my_data[:,:]
 
-test_set = my_data_app[0:t_m,:]
+test_set = my_data_app[0:validation_sz,:]
 
 X_train = train_set[:,0:Y_I].T
 
 Y_train = train_set[:,Y_I].T.reshape(1,-1)
 
+#Normalization
 utrain = np.mean(X_train,axis=1).reshape(-1,1)
 stdtrain = np.std(X_train,axis=1).reshape(-1,1)
 
@@ -87,16 +91,15 @@ def initialize_parameters(n_x,l_z,utrain,stdtrain):
 def get_parameters(n_x,l_z):
     
     l_z2 = l_z + l_z/2
-    ### START CODE HERE ### (approx. 6 lines of code)
+    
     W1 = tf.get_variable("W1", [l_z,n_x])
     b1 = tf.get_variable("b1", [l_z,1])
     W2 = tf.get_variable("W2", [l_z2,l_z])
     b2 = tf.get_variable("b2", [l_z2,1])
     W3 = tf.get_variable("W3", [1,l_z2])
     b3 = tf.get_variable("b3", [1,1])
-    ### END CODE HERE ###
-
     
+ 
     parameters = {"W1": W1,
                   "b1": b1,
                   "W2": W2,
@@ -238,7 +241,7 @@ def model(X_train, Y_train, X_test, Y_test, L_Z, learning_rate = 0.0001,
     printParams(parameters,sess, True)
     sess.close()
                 
-        # plot the cost
+    # plot the cost
     plt.plot(np.squeeze(costs),'b')
     #plt.plot(np.squeeze(costs_test),'r')
     plt.ylabel('Cost')
